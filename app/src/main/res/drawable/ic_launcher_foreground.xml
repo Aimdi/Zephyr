@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Abstract geometric prism: overlapping faceted shapes -->
+
+    <!-- Large diamond - base shape -->
+    <path
+        android:pathData="M54,24 L74,54 L54,84 L34,54 Z"
+        android:fillColor="#33FFFFFF" />
+
+    <!-- Upper-left facet -->
+    <path
+        android:pathData="M54,24 L34,54 L54,48 Z"
+        android:fillColor="#80E0F7FA" />
+
+    <!-- Upper-right facet -->
+    <path
+        android:pathData="M54,24 L74,54 L54,48 Z"
+        android:fillColor="#9900BCD4" />
+
+    <!-- Lower-left facet -->
+    <path
+        android:pathData="M34,54 L54,84 L54,60 Z"
+        android:fillColor="#8000ACC1" />
+
+    <!-- Lower-right facet -->
+    <path
+        android:pathData="M74,54 L54,84 L54,60 Z"
+        android:fillColor="#6000838F" />
+
+    <!-- Center highlight line -->
+    <path
+        android:pathData="M54,48 L54,60"
+        android:strokeWidth="0.8"
+        android:strokeColor="#BBFFFFFF" />
+
+    <!-- Left accent triangle -->
+    <path
+        android:pathData="M28,42 L42,54 L28,66 Z"
+        android:fillColor="#4000BCD4" />
+
+    <!-- Right accent triangle -->
+    <path
+        android:pathData="M80,42 L66,54 L80,66 Z"
+        android:fillColor="#4000BCD4" />
+
+    <!-- Top sparkle / angular accent -->
+    <path
+        android:pathData="M54,18 L58,26 L54,24 L50,26 Z"
+        android:fillColor="#CCE0F7FA" />
+
+    <!-- Bottom sparkle -->
+    <path
+        android:pathData="M54,90 L58,82 L54,84 L50,82 Z"
+        android:fillColor="#6600BCD4" />
+
+    <!-- Thin angular rays extending from prism -->
+    <path
+        android:pathData="M34,54 L24,50"
+        android:strokeWidth="0.6"
+        android:strokeColor="#5500BCD4" />
+    <path
+        android:pathData="M34,54 L24,58"
+        android:strokeWidth="0.6"
+        android:strokeColor="#5500BCD4" />
+    <path
+        android:pathData="M74,54 L84,50"
+        android:strokeWidth="0.6"
+        android:strokeColor="#5500BCD4" />
+    <path
+        android:pathData="M74,54 L84,58"
+        android:strokeWidth="0.6"
+        android:strokeColor="#5500BCD4" />
+
+    <!-- Inner glow diamond -->
+    <path
+        android:pathData="M54,38 L62,54 L54,70 L46,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="38"
+                android:endX="54"
+                android:endY="70"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#55E0F7FA" />
+                <item android:offset="0.5" android:color="#3300BCD4" />
+                <item android:offset="1.0" android:color="#1100838F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+</vector>
