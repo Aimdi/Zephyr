@@ -1,39 +1,45 @@
-# This is a basic workflow to help you get started with Actions
-
-name: Android Release
+name: Release APK
 
 on:
-  push:
-    branches:
-      - 'release*'
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job
-  apk:
-    name: Generate APK
+  release:
+    name: Build and Release APK
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: set up JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build debug APK
-        run: bash ./gradlew assembleGithubDebug --stacktrace
-        
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build GitHub Release APK
+        run: bash ./gradlew assembleGithubRelease --stacktrace
+
+      - name: Get version name
+        id: version
+        run: |
+          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed 's/.*versionName "\(.*\)"/\1/')
+          VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed 's/.*versionCode \(.*\)/\1/' | tr -d ' ')
+          echo "name=v${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "code=${VERSION_CODE}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: app
-          path: app/build/outputs/apk/github/debug/app-github-debug.apk
+          tag_name: ${{ steps.version.outputs.name }}
+          name: Zephyr ${{ steps.version.outputs.name }}
+          body: |
+            ## Zephyr ${{ steps.version.outputs.name }}
+
+            Release APK for Zephyr launcher (version code: ${{ steps.version.outputs.code }}).
+          files: app/build/outputs/apk/github/release/app-github-release-unsigned.apk
+          draft: false
+          prerelease: false
