@@ -1,12 +1,9 @@
 package rocks.tbog.tblauncher.loader;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Build;
 import android.os.UserManager;
 import android.util.Log;
@@ -22,6 +19,7 @@ import rocks.tbog.tblauncher.TBApplication;
 import rocks.tbog.tblauncher.db.AppRecord;
 import rocks.tbog.tblauncher.entry.AppEntry;
 import rocks.tbog.tblauncher.handler.AppsHandler;
+import rocks.tbog.tblauncher.utils.PackageManagerUtils;
 import rocks.tbog.tblauncher.utils.Timer;
 import rocks.tbog.tblauncher.utils.UserHandleCompat;
 
@@ -76,46 +74,38 @@ public class LoadAppEntry extends LoadEntryItem<AppEntry> {
             dbApps = appsHandler.getAppRecords(ctx);
             pendingChanges = new ArrayList<>(0);
 
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                UserManager manager = (UserManager) ctx.getSystemService(Context.USER_SERVICE);
-                LauncherApps launcher = (LauncherApps) ctx.getSystemService(Context.LAUNCHER_APPS_SERVICE);
-                if (manager != null && launcher != null) {
-                    // Handle multi-profile support introduced in Android 5 (#542)
-                    for (android.os.UserHandle profile : manager.getUserProfiles()) {
-                        UserHandleCompat user = new UserHandleCompat(manager.getSerialNumberForUser(profile), profile);
-                        List<LauncherActivityInfo> activityList = launcher.getActivityList(null, profile);
-                        apps.ensureCapacity(apps.size() + activityList.size());
-                        Log.i("App", "getActivityList(" + profile + ") found " + activityList.size() + " app(s)");
-                        for (LauncherActivityInfo activityInfo : activityList) {
-                            ApplicationInfo appInfo = activityInfo.getApplicationInfo();
+            UserManager manager = (UserManager) ctx.getSystemService(Context.USER_SERVICE);
+            LauncherApps launcher = (LauncherApps) ctx.getSystemService(Context.LAUNCHER_APPS_SERVICE);
+            if (manager != null && launcher != null) {
+                // Handle multi-profile support introduced in Android 5 (#542)
+                for (android.os.UserHandle profile : manager.getUserProfiles()) {
+                    boolean isPrivateProfile = PackageManagerUtils.isPrivateProfile(launcher, profile);
+                    UserHandleCompat user = new UserHandleCompat(manager.getSerialNumberForUser(profile), profile);
+                    List<LauncherActivityInfo> activityList = launcher.getActivityList(null, profile);
+                    apps.ensureCapacity(apps.size() + activityList.size());
+                    Log.i("App", "getActivityList(" + profile + ") found " + activityList.size() + " app(s)");
+                    for (LauncherActivityInfo activityInfo : activityList) {
+                        ApplicationInfo appInfo = activityInfo.getApplicationInfo();
 
-                            String displayName = activityInfo.getLabel().toString();
-                            if (displayName.equals(appInfo.packageName))
-                                displayName = activityInfo.getName();
+                        // Check if app is suspended/frozen
+                        boolean isSuspended = PackageManagerUtils.isAppSuspended(appInfo);
+                        boolean isQuietMode = isQuietModeEnabled(manager, profile);
+                        boolean disabled = isSuspended || isQuietMode;
 
-                            AppEntry app = processApp(displayName, appInfo.packageName, activityInfo.getName(), user);
-
-                            apps.add(app);
+                        // Skip disabled apps in private profile (they're not accessible)
+                        if (disabled && isPrivateProfile) {
+                            continue;
                         }
+
+                        String displayName = activityInfo.getLabel().toString();
+                        if (displayName.equals(appInfo.packageName))
+                            displayName = activityInfo.getName();
+
+                        AppEntry app = processApp(displayName, appInfo.packageName, activityInfo.getName(), user);
+                        app.setSuspended(disabled);
+
+                        apps.add(app);
                     }
-                }
-            } else {
-                PackageManager manager = ctx.getPackageManager();
-
-                Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-                mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-                List<ResolveInfo> activityList = manager.queryIntentActivities(mainIntent, 0);
-                apps.ensureCapacity(apps.size() + activityList.size());
-                Log.i("App", "queryIntentActivities found " + activityList.size() + " app(s)");
-                for (ResolveInfo info : activityList) {
-                    UserHandleCompat user = UserHandleCompat.CURRENT_USER;
-                    ApplicationInfo appInfo = info.activityInfo.applicationInfo;
-
-                    String displayName = info.loadLabel(manager).toString();
-                    AppEntry app = processApp(displayName, appInfo.packageName, info.activityInfo.name, user);
-
-                    apps.add(app);
                 }
             }
 
@@ -140,6 +130,13 @@ public class LoadAppEntry extends LoadEntryItem<AppEntry> {
             AppsHandler.setTagsForApps(apps, TBApplication.tagsHandler(ctx));
 
             return apps;
+        }
+
+        private boolean isQuietModeEnabled(UserManager manager, android.os.UserHandle profile) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                return manager.isQuietModeEnabled(profile);
+            }
+            return false;
         }
 
         @NonNull
