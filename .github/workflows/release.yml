@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - master
+    paths:
+      - '.github/workflows/release.yml'
   workflow_dispatch:
 
 jobs:
@@ -39,10 +43,7 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.name }}
           name: Zephyr ${{ steps.version.outputs.name }}
-          body: |
-            ## Zephyr ${{ steps.version.outputs.name }}
-
-            Release APK for Zephyr launcher (version code: ${{ steps.version.outputs.code }}).
+          generate_release_notes: true
           files: app/build/outputs/apk/github/release/app-github-release-unsigned.apk
           draft: false
           prerelease: false
