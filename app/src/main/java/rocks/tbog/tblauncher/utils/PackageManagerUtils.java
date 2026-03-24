@@ -5,9 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.os.UserManager;
+
+import androidx.annotation.NonNull;
 
 import java.util.List;
 
@@ -128,6 +133,39 @@ public class PackageManagerUtils {
             return launchIntent.getComponent();
         }
         return null;
+    }
+
+    /**
+     * Check if an application is suspended (frozen).
+     *
+     * @param appInfo application info
+     * @return true if the app is suspended
+     */
+    public static boolean isAppSuspended(ApplicationInfo appInfo) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return (appInfo.flags & ApplicationInfo.FLAG_SUSPENDED) != 0;
+        }
+        return false;
+    }
+
+    /**
+     * Check if a user profile is a private space profile (Android 15+).
+     *
+     * @param launcherApps LauncherApps service
+     * @param userHandle   the user handle to check
+     * @return true if this is a private space profile
+     */
+    public static boolean isPrivateProfile(@NonNull LauncherApps launcherApps, @NonNull android.os.UserHandle userHandle) {
+        if (Build.VERSION.SDK_INT >= 35) { // VANILLA_ICE_CREAM = API 35
+            try {
+                android.content.pm.LauncherUserInfo info = launcherApps.getLauncherUserInfo(userHandle);
+                return info != null && UserManager.USER_TYPE_PROFILE_PRIVATE.equalsIgnoreCase(info.getUserType());
+            } catch (Exception e) {
+                // SecurityException if ACCESS_HIDDEN_PROFILES not granted
+                return false;
+            }
+        }
+        return false;
     }
 
     /**

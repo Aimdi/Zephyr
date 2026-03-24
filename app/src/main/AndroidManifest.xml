@@ -13,6 +13,12 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+    <!-- To read phone state for incoming call handling -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- To provide access and state handling of the private space (Android 15+) -->
+    <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
+    <!-- To set timers/alarms -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <uses-feature
         android:name="android.hardware.telephony"
@@ -45,6 +51,8 @@
         android:label="@string/app_name_dynamic"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:localeConfig="@xml/locales_config"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/SettingsDialogTheme.Default">
         <activity
             android:name=".TBLauncherActivity"

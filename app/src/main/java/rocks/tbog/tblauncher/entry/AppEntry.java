@@ -64,6 +64,7 @@ public final class AppEntry extends EntryWithTags {
     private final IconInfo iconInfo = new IconInfo();
     private boolean hiddenByUser = false;
     private boolean excludedFromHistory = false;
+    private boolean suspended = false;
 
     private static class IconInfo {
         public boolean isDynamic = false;
@@ -146,6 +147,14 @@ public final class AppEntry extends EntryWithTags {
 
     public void setExcludedFromHistory(boolean excludedFromHistory) {
         this.excludedFromHistory = excludedFromHistory;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
     }
 
     public boolean canUninstall() {
@@ -247,6 +256,11 @@ public final class AppEntry extends EntryWithTags {
                 bottomRightIcon.setVisibility(View.GONE);
         }
 
+        // Grey out suspended/frozen apps
+        float alpha = isSuspended() ? 0.5f : 1.0f;
+        nameView.setAlpha(alpha);
+        appIcon.setAlpha(alpha);
+
         ResultViewHelper.applyPreferences(drawFlags, nameView, appIcon);
     }
 
@@ -298,6 +312,12 @@ public final class AppEntry extends EntryWithTags {
 //            int primaryColor = UIColors.getPrimaryColor(context);
 //            notificationView.setColorFilter(primaryColor);
 //        }
+
+        // Grey out suspended/frozen apps
+        float alpha = isSuspended() ? 0.5f : 1.0f;
+        nameView.setAlpha(alpha);
+        appIcon.setAlpha(alpha);
+        tagsView.setAlpha(alpha);
 
         ResultViewHelper.applyPreferences(drawFlags, nameView, tagsView, appIcon);
     }

@@ -5,20 +5,34 @@ apply plugin: 'com.dipien.byebyejetifier'
 
 android {
     namespace 'rocks.tbog.tblauncher'
-    compileSdk 34
+    compileSdk 35
+
+    signingConfigs {
+        release {
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                def keystoreProperties = new Properties()
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
 
     defaultConfig {
-        applicationId "rocks.tbog.tblauncher"
-        minSdk 19
-        targetSdk 33
+        applicationId "com.zephyr.app"
+        minSdk 21
+        targetSdk 35
         versionCode 43
         versionName "7.5"
         vectorDrawables.useSupportLibrary = true
-        multiDexEnabled true
     }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             resValue "string", "app_name_dynamic", "@string/app_name"
@@ -85,7 +99,7 @@ dependencies {
     implementation "ch.acra:acra-dialog:$acra_version"
     implementation "ch.acra:acra-core:$acra_version"
     implementation "androidx.asynclayoutinflater:asynclayoutinflater:1.0.0"
-    implementation 'androidx.annotation:annotation:1.8.0'
+    implementation 'androidx.annotation:annotation:1.9.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
@@ -94,35 +108,8 @@ dependencies {
     implementation('com.github.dhaval2404:imagepicker:2.1', {
         exclude group: 'com.squareup.okhttp3'
     })
-    implementation "androidx.multidex:multidex:$multidex_version"
-    // 2.0.0 not supported, as "Unsupported desugared library configuration version, please upgrade the D8/R8 compiler." Android Gradle Plugin would need to be 7.4.0-alpha10
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
 repositories {
     mavenCentral()
 }
-
-//configurations.all {
-//    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-//        def requested = details.requested
-//        if (requested.group == 'org.jetbrains.kotlin'
-//                && (requested.name == 'kotlin-reflect'
-//                || requested.name.startsWith('kotlin-stdlib'))
-//        ) {
-//            details.useVersion kotlin_version
-//        }
-//    }
-//}
-
-//allprojects {
-//    tasks.withType(JavaCompile) {
-//        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-//    }
-//}
-
-//tasks.whenTaskAdded { task ->
-//    if (task.name == 'assembleDebug') {
-//        task.dependsOn lint
-//        task.mustRunAfter lint
-//    }
-//}
